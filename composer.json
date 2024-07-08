@@ -1,0 +1,33 @@
+{
+  "name": "m-wardany/hash-ids",
+  "description": "This package is designed to hash sequential keys so that they appear as random characters, making them difficult to predict. There is no requirement to check if the key already exists in the database before saving, as each key is guaranteed to be unique",
+  "keywords": [
+    "laravel",
+    "laravel-packages",
+    "youtube-like-id",
+    "hashing",
+    "encrypted-ids",
+    "php-ffx",
+    "ffx",
+    "fpe",
+    "encryption"
+  ],
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "MWardany\\HashIds\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Muhammad Wardany",
+      "email": "muhammad.wardany@gmail.com"
+    }
+  ],
+  "minimum-stability": "dev",
+  "require": {
+    "php": "^8.1",
+    "laravel/framework": "^9",
+    "katoni/php-ffx": "dev-master"
+  }
+}
