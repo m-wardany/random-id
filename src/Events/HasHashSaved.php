@@ -2,12 +2,13 @@
 
 namespace MWardany\HashIds\Events;
 
+use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use MWardany\HashIds\Interfaces\HasHashId;
+use MWardany\HashIds\Interfaces\Hashable;
 
 class HasHashSaved
 {
-    use SerializesModels;
+    use SerializesModels, Dispatchable;
 
     /**
      * Create a new event instance.
@@ -15,7 +16,7 @@ class HasHashSaved
      * @param $model
      * @return void
      */
-    public function __construct(public HasHashId $model)
+    public function __construct(public Hashable $model)
     {
     }
 }

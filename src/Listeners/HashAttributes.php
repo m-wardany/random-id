@@ -3,11 +3,14 @@
 namespace MWardany\HashIds\Listeners;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Events\Dispatchable;
 use MWardany\HashIds\Events\HasHashSaved;
 use MWardany\HashIds\Services\HashAttributeService;
 
 class HashAttributes implements ShouldQueue
 {
+    use Dispatchable;
+
     /**
      * Handle the event.
      *
@@ -16,9 +19,8 @@ class HashAttributes implements ShouldQueue
      */
     public function handle(HasHashSaved $event)
     {
-        if ($event->model->allowHashingAfterInsert() ||  $event->model->allowHashingAfterUpdate()) {
-            $service = new HashAttributeService($event->model);
-        }
+        $service = new HashAttributeService($event->model);
+        $service->execute();
     }
 
     /**

@@ -3,18 +3,17 @@
 namespace MWardany\HashIds\Services;
 
 use Illuminate\Database\Eloquent\Model;
+use MWardany\HashIds\Codecs\Text;
 use MWardany\HashIds\Helpers\HashBuilder;
-use MWardany\HashIds\Interfaces\HasHashId;
+use MWardany\HashIds\Interfaces\Hashable;
 use Symfony\Component\Routing\Exception\NoConfigurationException;
 
 final class HashAttributeService
 {
-    function __construct(private HasHashId|Model $model)
+    function __construct(private Hashable|Model $model)
     {
-        if ($model->getEncryptionKey() === null) {
-            throw new NoConfigurationException("Encryption key is required", 1);
-        }
     }
+
     function execute(): void
     {
         foreach ($this->model->getHashAttributes() as $attribute => $props) {
@@ -23,12 +22,9 @@ final class HashAttributeService
             }
             $value = $this->model->$attribute;
             $newAttribute = $props->getHashedAttribute();
-            $length = $props->getLength();
-            $alphabet = $props->getCharacters();
-            $prefix = $props->getPrefix();
-            $sufffix = $props->getSuffix();
-            $ffx = new \Katoni\FFX\Codecs\Text($this->model->getEncryptionKey(), $alphabet, $length);
-            $this->model->$newAttribute = sprintf('%%%', $prefix, $ffx->encrypt(str_pad((string) $value, $length, '0', STR_PAD_LEFT)), $sufffix);
+
+            $hashService = new HashService($value, $props, $this->model->getEncryptionKey());
+            $this->model->$newAttribute = $hashService->execute();
         }
         $this->model->saveQuietly();
     }

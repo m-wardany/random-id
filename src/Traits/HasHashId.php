@@ -8,9 +8,9 @@ use MWardany\HashIds\Helpers\HashBuilder;
 trait HasHashId
 {
 
-    function getEncryptionKey(): string
+    function getEncryptionKey(): ?string
     {
-        return config('hashid.encryption_key', null);
+        return config('hashid.encryption_key');
     }
     /**
      * Return a list of HashBuilder objects 
@@ -22,9 +22,9 @@ trait HasHashId
      */
     function getHashAttributes(): array
     {
-        $pattern = config('hashid.hashed_attributed_pattern', '%_hashed');
+        $pattern = config('hashid.hashed_attributed_pattern', '%s_hashed');
         return [
-            'id' => HashBuilder::text(sprintf($pattern, 'id'))->length(5)->prefix('ID-')
+            'id' => HashBuilder::mixed(sprintf($pattern, 'id'))->minLength(5)->prefix('ID-')
         ];
     }
 
@@ -64,11 +64,13 @@ trait HasHashId
      */
     public static function bootHasHashId(): void
     {
-        static::created(function ($model) {
-            event(new HasHashSaved($model));
-        });
-        static::updated(function ($model) {
-            event(new HasHashSaved($model));
+        // static::created(function ($model) {
+        //     event(new HasHashSaved($model));
+        // });
+        static::saved(function ($model) {
+            HasHashSaved::dispatch($model);
+            // $service = new HashAttributeService($model);
+            // $service->execute();
         });
     }
 }

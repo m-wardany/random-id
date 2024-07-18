@@ -27,6 +27,6 @@
   "minimum-stability": "stable",
   "require": {
     "php": "^8.1",
-    "katoni/php-ffx": "dev-master"
+    "katoni/php-ffx": "^1.0"
   }
 }

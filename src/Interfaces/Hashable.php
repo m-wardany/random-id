@@ -2,14 +2,14 @@
 
 namespace MWardany\HashIds\Interfaces;
 
-interface HasHashId
+interface Hashable
 {
     /**
      * the key that will be used for the encryption
      *
      * @return string
      */
-    function getEncryptionKey(): string;
+    function getEncryptionKey(): ?string;
 
     /**
      * Return a list of HashBuilder objects 
