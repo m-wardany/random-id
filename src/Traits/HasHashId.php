@@ -2,8 +2,8 @@
 
 namespace MWardany\HashIds\Traits;
 
-use MWardany\HashIds\Events\HasHashSaved;
 use MWardany\HashIds\Helpers\HashBuilder;
+use MWardany\HashIds\Services\HashAttributeService;
 
 trait HasHashId
 {
@@ -64,13 +64,9 @@ trait HasHashId
      */
     public static function bootHasHashId(): void
     {
-        // static::created(function ($model) {
-        //     event(new HasHashSaved($model));
-        // });
         static::saved(function ($model) {
-            HasHashSaved::dispatch($model);
-            // $service = new HashAttributeService($model);
-            // $service->execute();
+            $service = new HashAttributeService($model);
+            $service->execute();
         });
     }
 }
