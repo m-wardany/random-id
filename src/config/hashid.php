@@ -26,21 +26,6 @@ return [
     'hashed_attributed_pattern' => '%s_hashed',
 
     /**
-     * Charachters to be used in encryption for Mixed encryption  
-     */
-    'mix_alphabet' => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
-
-    /**
-     * Charachters to be used in encryption for Text encryption  
-     */
-    'text_alphabet' => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-
-    /**
-     * Charachters to be used in encryption for Int encryption  
-     */
-    'int_alphabet' => '0123456789',
-
-    /**
      * To allow Queue for Hashing globally
      */
     'queue' => [

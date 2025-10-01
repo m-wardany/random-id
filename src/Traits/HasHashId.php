@@ -96,7 +96,7 @@ trait HasHashId
      *
      * @return void
      */
-    protected function processHashAttributes(): void
+    public function processHashAttributes(): void
     {
         $service = new HashAttributeService($this);
         $service->execute();

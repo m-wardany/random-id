@@ -126,6 +126,6 @@ class HashBuilder
 
     function getEncryptionKey(): ?string
     {
-        return $this->_encryption_key;
+        return $this->_encryption_key ?? null;
     }
 }

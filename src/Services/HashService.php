@@ -24,7 +24,8 @@ final class HashService
         $prefix = $this->props->getPrefix() ?? '';
         $sufffix = $this->props->getSuffix() ?? '';
         $ffx = $this->getFFX($length)->encrypt(str_pad((string) $this->text, $length, '0', STR_PAD_LEFT));
-        return  sprintf('%s%s%s', $prefix, implode('', $ffx), $sufffix);
+
+        return  sprintf('%s%s%s', $prefix, is_array($ffx) ? implode('', $ffx) : $ffx, $sufffix);
     }
 
     /**
@@ -36,11 +37,11 @@ final class HashService
     {
         switch ($this->props->getType()) {
             case TypeEnum::TYPE_MIX:
-                return new Sequence($this->encryptionKey, config('hashid.mix_alphabet'), $length);
+                return new Sequence($this->encryptionKey, $this->props->getType()->alphabet(), $length);
             case TypeEnum::TYPE_TEXT:
-                return new Text($this->encryptionKey, config('hashid.text_alphabet'), $length);
+                return new Text($this->encryptionKey, $this->props->getType()->alphabet(), $length);
             case TypeEnum::TYPE_INT:
-                return new Integer($this->encryptionKey, config('hashid.int_alphabet'), $length);
+                return new Integer($this->encryptionKey, $length);
         }
     }
 }

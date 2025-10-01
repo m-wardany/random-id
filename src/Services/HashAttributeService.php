@@ -1,46 +1,73 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MWardany\HashIds\Services;
 
 use Illuminate\Database\Eloquent\Model;
+use InvalidArgumentException;
 use MWardany\HashIds\Helpers\HashBuilder;
 use MWardany\HashIds\Interfaces\Hashable;
-use Symfony\Component\Routing\Exception\NoConfigurationException;
 
 final class HashAttributeService
 {
-    function __construct(private Hashable|Model $model)
-    {
+    public function __construct(
+        private readonly Hashable|Model $model
+    ) {
     }
 
-    function execute(): void
+    public function execute(): void
     {
-        foreach ($this->model->getHashAttributes() as $attribute => $props) {
-            if (($props instanceof HashBuilder)) {
-                $this->hash($this->model->$attribute, $props);
-            }
-            elseif(is_array($props)) {
-                foreach ($props as $prop) {
-                    if ($prop instanceof HashBuilder) {
-                        $this->hash($this->model->$attribute, $prop);
-                    } else {
-                        throw new NoConfigurationException("Attribute value should be instance of HashBuilder class", 1);
-                    }
-                }
-            }
-            else {
-                throw new NoConfigurationException("Attribute value should be instance of HashBuilder class", 1);
-            }
+        $hashAttributes = $this->model->getHashAttributes();
+
+        foreach ($hashAttributes as $attribute => $configuration) {
+            $this->processAttribute($attribute, $configuration);
         }
 
         $this->model->saveQuietly();
     }
 
-    function hash($value, HashBuilder $props): void
+    private function processAttribute(string $attribute, mixed $configuration): void
     {
-        $newAttribute = $props->getHashedAttribute();
+        if ($configuration instanceof HashBuilder) {
+            $this->hashAttribute($attribute, $configuration);
+            return;
+        }
 
-        $hashService = new HashService($value, $props, $props->getEncryptionKey() ?? $this->model->getEncryptionKey());
-        $this->model->$newAttribute = $hashService->execute();
+        if (is_array($configuration)) {
+            $this->processArrayConfiguration($attribute, $configuration);
+            return;
+        }
+
+        throw new InvalidArgumentException(
+            'Hash configuration must be an instance of HashBuilder or an array of HashBuilder instances.'
+        );
+    }
+
+    private function processArrayConfiguration(string $attribute, array $configurations): void
+    {
+        foreach ($configurations as $configuration) {
+            if (!$configuration instanceof HashBuilder) {
+                throw new InvalidArgumentException(
+                    'All array elements must be instances of HashBuilder.'
+                );
+            }
+            $this->hashAttribute($attribute, $configuration);
+        }
+    }
+
+    private function hashAttribute(string $attribute, HashBuilder $builder): void
+    {
+        $value = $this->model->$attribute;
+        $hashedAttributeName = $builder->getHashedAttribute();
+        $encryptionKey = $this->resolveEncryptionKey($builder);
+
+        $hashService = new HashService($value, $builder, $encryptionKey);
+        $this->model->$hashedAttributeName = $hashService->execute();
+    }
+
+    private function resolveEncryptionKey(HashBuilder $builder): string
+    {
+        return $builder->getEncryptionKey() ?? $this->model->getEncryptionKey();
     }
 }
