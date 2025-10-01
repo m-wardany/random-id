@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MWardany\HashIds\Traits;
 
 use MWardany\HashIds\Helpers\HashBuilder;
@@ -7,66 +9,96 @@ use MWardany\HashIds\Services\HashAttributeService;
 
 trait HasHashId
 {
-
-    function getEncryptionKey(): ?string
+    /**
+     * Get the encryption key used for hashing.
+     *
+     * @return string|null
+     */
+    public function getEncryptionKey(): ?string
     {
         return config('hashid.encryption_key');
     }
+
     /**
-     * Return a list of HashBuilder objects 
-     * [
-     *  'id' => HashBuilder::text()->perfix('PRC-')->length(5),
-     *  'other_attribute' => HashBuilder::int()
-     * ]
-     * @return \MWardany\HashIds\Helpers\HashBuilder[]
+     * Define which attributes should be hashed and their configurations.
+     *
+     * Example:
+     * ```php
+     * return [
+     *     'id' => HashBuilder::mixed('id_hashed')
+     *         ->minLength(5)
+     *         ->prefix('ID-'),
+     *     'ref' => [
+     *         HashBuilder::text('primary_ref')->minLength(8),
+     *         HashBuilder::int('secondary_ref')->minLength(6),
+     *     ],
+     * ];
+     * ```
+     *
+     * @return array<string, HashBuilder|HashBuilder[]>
      */
-    function getHashAttributes(): array
+    public function getHashAttributes(): array
     {
         $pattern = config('hashid.hashed_attributed_pattern', '%s_hashed');
+        
         return [
-            'id' => HashBuilder::mixed(sprintf($pattern, 'id'))->minLength(5)->prefix('ID-')
+            'id' => HashBuilder::mixed(sprintf($pattern, 'id'))
+                ->minLength(5)
+                ->prefix('ID-'),
         ];
     }
 
     /**
-     * Allow save hashed attributes after creating a new model
+     * Determine if hashing should occur after a model is created.
      *
-     * @return boolean
+     * @return bool
      */
-    function allowHashingAfterInsert(): bool
+    public function allowHashingAfterInsert(): bool
     {
         return config('hashid.allow_hashing_after_insert', true);
     }
 
     /**
-     * Allow updating the hashed attributes after updating the model
+     * Determine if hashing should occur after a model is updated.
      *
-     * @return boolean
+     * @return bool
      */
-    function allowHashingAfterUpdate(): bool
+    public function allowHashingAfterUpdate(): bool
     {
-        return config('hashid.allow_hashing_after_update', true);
+        return config('hashid.allow_hashing_after_update', false);
     }
 
     /**
-     * whether to save the hashed key sync or async
+     * Boot the HasHashId trait for the model.
      *
-     * @return boolean
-     */
-    function saveHashAsynchronously(): bool
-    {
-        return config('hashid.queue.enabled', false);
-    }
-
-    /**
-     * 
+     * Registers model event listeners to automatically hash attributes
+     * when the model is saved.
+     *
      * @return void
      */
     public static function bootHasHashId(): void
     {
-        static::saved(function ($model) {
-            $service = new HashAttributeService($model);
-            $service->execute();
+        static::created(function ($model): void {
+            if ($model->allowHashingAfterInsert()) {
+                $model->processHashAttributes();
+            }
         });
+
+        static::updated(function ($model): void {
+            if ($model->allowHashingAfterUpdate()) {
+                $model->processHashAttributes();
+            }
+        });
+    }
+
+    /**
+     * Process and hash the configured attributes.
+     *
+     * @return void
+     */
+    protected function processHashAttributes(): void
+    {
+        $service = new HashAttributeService($this);
+        $service->execute();
     }
 }

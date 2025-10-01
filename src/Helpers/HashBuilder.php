@@ -8,14 +8,13 @@ use MWardany\HashIds\Enums\TypeEnum;
 class HashBuilder
 {
 
-    private string $_characters;
-
     private int $_length = 5;
 
     private string $_prefix;
 
     private string $_suffix;
 
+    private string $_encryption_key;
 
     private function __construct(private TypeEnum $_type, private string $_attribute)
     {
@@ -84,6 +83,22 @@ class HashBuilder
         return $this;
     }
 
+    /**
+     * String to be added to the End of the hashed text
+     *
+     * @param [type] $value
+     * @return self
+     */
+    function encryptionKey(string|Closure $value): self
+    {
+        if (is_callable($value)) {
+            $this->_encryption_key = $value($this);
+        } else {
+            $this->_encryption_key = $value;
+        }
+        return $this;
+    }
+
     function getType()
     {
         return $this->_type;
@@ -107,5 +122,10 @@ class HashBuilder
     function getSuffix()
     {
         return $this->_suffix ?? '';
+    }
+
+    function getEncryptionKey(): ?string
+    {
+        return $this->_encryption_key;
     }
 }
